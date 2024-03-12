@@ -5,7 +5,7 @@ from html.parser import HTMLParser
 import pandas as pd
 
 
-class Parser(HTMLParser):
+class ViewParser(HTMLParser):
   def __init__(self):
     super().__init__()
     self.has_title = False
@@ -57,7 +57,7 @@ def main():
       if html is None:
         continue
 
-      parser = Parser()
+      parser = ViewParser()
       parser.feed(html)
       song_list.extend(parser.output())
 
