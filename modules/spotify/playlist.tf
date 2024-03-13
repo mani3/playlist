@@ -1,8 +1,9 @@
 data "spotify_search_track" "by_name" {
   for_each = { for i, track in toset(var.playlist) : "${track.title}/${track.artist}" => track }
 
-  name  = each.value.title
-  limit = 1
+  name   = each.value.title
+  artist = each.value.artist
+  limit  = 1
 }
 
 resource "spotify_playlist" "playlist" {
