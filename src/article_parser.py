@@ -94,7 +94,7 @@ def main():
   df = pd.DataFrame(data_list)
   df.sort_values(by=["date"], inplace=True)
   yml = yaml.dump(df.reset_index().to_dict(orient="records"), allow_unicode=True)
-  print(yml)
+
   with open("./playlist.yml", "w") as f:
     f.write(yml)
 

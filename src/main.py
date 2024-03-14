@@ -31,14 +31,11 @@ def main(args):
   response = requests.get(args.url)
   html = response.text
 
-  print(html)
-
   parser = ViewParser()
   parser.feed(html)
   article_links = parser.output()
 
   articles = [retrieve_article(article['link']) for article in article_links if "SONG LIST" in article['title']]
-  print(articles)
 
   with open(args.yaml_path) as f:
     data = yaml.load(f, Loader=yaml.SafeLoader)
@@ -47,10 +44,16 @@ def main(args):
   old_df = old_df.drop(['index'], axis=1)
 
   new_df = pd.DataFrame(articles)
+  new_df['date'] = pd.to_datetime(new_df['date']).astype(str)
+
   df = pd.concat([old_df, new_df], ignore_index=True)
+  df = df.drop_duplicates(subset=["date"], keep="first")
   df.sort_values(by=["date"], inplace=True)
 
-  yml = yaml.dump(df.reset_index().to_dict(orient="records"), allow_unicode=True)
+  playlist = df.reset_index().to_dict(orient="records")
+  playlist = [p for p in playlist if p.pop('index', None)]
+
+  yml = yaml.dump(playlist, allow_unicode=True)
   with open(args.yaml_path, "w") as f:
     f.write(yml)
 
