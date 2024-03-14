@@ -9,6 +9,52 @@ class ViewParser(HTMLParser):
   def __init__(self):
     super().__init__()
     self.has_title = False
+    self.has_link = False
+    self.links = []
+    self.thumbnails = []
+    self.titles = []
+
+  def handle_starttag(self, tag, attrs):
+    attrs = dict(attrs)
+    if tag == "a" and "href" in attrs and "id" in attrs and "analysis_program-contents" in attrs["id"]:
+      self.links.append(attrs["href"])
+      self.has_link = True
+
+    if self.has_link and tag == "img" and "data-original" in attrs:
+      self.thumbnails.append(attrs["data-original"])
+
+    if self.has_link and tag == "p" and "class" in attrs and "txt-article" in attrs['class']:
+      self.has_title = True
+
+  def handle_endtag(self, tag):
+    pass
+
+  def handle_data(self, data):
+    if self.has_title:
+      self.titles.append(data)
+      self.has_title = False
+      self.has_link = False
+
+  def output(self):
+    print(self.titles, self.links, self.thumbnails)
+    if len(self.titles) == len(self.links) and len(self.titles) == len(self.thumbnails):
+      return [
+          {
+              "title": self.titles[i],
+              "link": self.links[i],
+              "thumbnail": self.thumbnails[i],
+          }
+          for i in range(len(self.titles))
+      ]
+    else:
+      print("Error: titles, links, thumbnails length not match")
+      return []
+
+
+class TopParser(HTMLParser):
+  def __init__(self):
+    super().__init__()
+    self.has_title = False
     self.links = []
     self.thumbnails = []
     self.titles = []
