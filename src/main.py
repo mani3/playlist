@@ -1,4 +1,3 @@
-
 import argparse
 import logging
 import os
@@ -7,7 +6,6 @@ import sys
 import pandas as pd
 import requests
 import yaml
-
 from article_parser import ArticleParser
 from song_list_parser import ViewParser
 
@@ -35,23 +33,27 @@ def main(args):
   parser.feed(html)
   article_links = parser.output()
 
-  articles = [retrieve_article(article['link']) for article in article_links if "SONG LIST" in article['title']]
+  articles = [retrieve_article(article["link"]) for article in article_links if "SONG LIST" in article["title"]]
+  articles = [article for article in articles if article]
 
   with open(args.yaml_path) as f:
     data = yaml.load(f, Loader=yaml.SafeLoader)
 
   old_df = pd.DataFrame(data)
-  old_df = old_df.drop(['index'], axis=1)
 
   new_df = pd.DataFrame(articles)
-  new_df['date'] = pd.to_datetime(new_df['date']).astype(str)
+  new_df["date"] = pd.to_datetime(new_df["date"]).astype(str)
+
+  if new_df.empty:
+    logger.error("No new data")
+    return
 
   df = pd.concat([old_df, new_df], ignore_index=True)
   df = df.drop_duplicates(subset=["date"], keep="first")
   df.sort_values(by=["date"], inplace=True)
 
-  playlist = df.reset_index().to_dict(orient="records")
-  playlist = [p for p in playlist if p.pop('index', None)]
+  playlist = df.reset_index(drop=True).to_dict(orient="records")
+  playlist = [p for p in playlist if p.pop("index", None)]
 
   yml = yaml.dump(playlist, allow_unicode=True)
   with open(args.yaml_path, "w") as f:
