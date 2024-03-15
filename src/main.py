@@ -6,6 +6,7 @@ import sys
 import pandas as pd
 import requests
 import yaml
+
 from article_parser import ArticleParser
 from song_list_parser import ViewParser
 
@@ -39,10 +40,16 @@ def main(args):
   with open(args.yaml_path) as f:
     data = yaml.load(f, Loader=yaml.SafeLoader)
 
+  if data is None:
+    logger.error("No data")
+    return
+
   old_df = pd.DataFrame(data)
+  print(old_df)
 
   new_df = pd.DataFrame(articles)
   new_df["date"] = pd.to_datetime(new_df["date"]).astype(str)
+  print(new_df)
 
   if new_df.empty:
     logger.error("No new data")
@@ -51,9 +58,11 @@ def main(args):
   df = pd.concat([old_df, new_df], ignore_index=True)
   df = df.drop_duplicates(subset=["date"], keep="first")
   df.sort_values(by=["date"], inplace=True)
+  print(df)
 
   playlist = df.reset_index(drop=True).to_dict(orient="records")
   playlist = [p for p in playlist if p.pop("index", None)]
+  print(playlist)
 
   yml = yaml.dump(playlist, allow_unicode=True)
   with open(args.yaml_path, "w") as f:
