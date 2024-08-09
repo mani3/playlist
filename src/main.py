@@ -6,6 +6,7 @@ import sys
 import pandas as pd
 import requests
 import yaml
+
 from article_parser import ArticleParser
 from song_list_parser import ViewParser
 
@@ -66,6 +67,6 @@ def main(args):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("--url", type=str)
-  parser.add_argument("--yaml-path", type=str, default="workloads/playlist/playlist.yml")
+  parser.add_argument("--yaml-path", type=str, default="workloads/playlist/playlist_memodis.yml")
   args = parser.parse_args()
   main(args)
