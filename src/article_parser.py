@@ -24,6 +24,9 @@ class ArticleParser(HTMLParser):
     self.playlist_name = None
     self.song_list = []
 
+    self.title = None
+    self.artist = None
+
   def handle_starttag(self, tag, attrs):
     attrs = dict(attrs)
 
@@ -62,6 +65,49 @@ class ArticleParser(HTMLParser):
         self.playlist_name = data.strip()
       else:
         self.playlist_name += data.strip()
+    elif self.flags["playlist"] and not self.flags["playlist_name"]:
+      if "♪" == data.strip():
+
+        self.title = None
+        self.artist = None
+      elif "♪" in data.strip():
+        name = data.strip().replace("♪", "")
+        if "／" in name:
+          title, artist = name.split("／")
+          if title and self.title is None:
+            self.title = title.strip()
+          if artist and self.artist is None:
+            self.artist = artist.strip()
+          if self.title is not None and self.artist is not None:
+            self.song_list.append({"title": self.title.strip(), "artist": self.artist.strip()})
+      elif "／" in data.strip():
+        title, artist = data.strip().split("／")
+        if title and self.title is None:
+          self.title = title.strip()
+        if artist and self.artist is None:
+          self.artist = artist.strip()
+
+        if self.title is not None and self.artist is not None:
+          self.song_list.append({"title": self.title, "artist": self.artist})
+          self.title = None
+          self.artist = None
+      elif data.strip():
+        name = data.strip().replace("／", "")
+        if not name:
+          pass
+        else:
+          if self.title is None:
+            self.title = name
+          elif self.artist is None:
+            self.artist = name
+
+          if self.title is not None and self.artist is not None:
+            self.song_list.append({"title": self.title, "artist": self.artist})
+            self.title = None
+            self.artist = None
+      else:
+        self.title = None
+        self.artist = None
 
   def output(self):
     if self.playlist_name is not None and len(self.song_list) > 0:
